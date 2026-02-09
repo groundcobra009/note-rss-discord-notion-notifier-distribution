@@ -278,6 +278,28 @@
     </div>
   </div>
 
+  <!-- 実行セクション -->
+  <div class="section">
+    <h3 class="section-title">▶️ 記事チェック実行</h3>
+    <div class="section-content">
+      <div class="btn-group vertical">
+        <button class="btn btn-primary btn-block" onclick="runCheck(0)" id="runAllBtn">
+          ▶️ 今すぐ実行（全て）
+        </button>
+        <button class="btn btn-outline btn-block" onclick="runCheck(1)" id="run1DayBtn">
+          📅 1日以内の記事をチェック
+        </button>
+        <button class="btn btn-outline btn-block" onclick="runCheck(3)" id="run3DayBtn">
+          📅 3日以内の記事をチェック
+        </button>
+        <button class="btn btn-outline btn-block" onclick="runCheck(7)" id="run7DayBtn">
+          📆 7日以内の記事をチェック
+        </button>
+      </div>
+      <div id="runResult" class="test-result" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
   <!-- 管理セクション -->
   <div class="section">
     <h3 class="section-title">📋 管理</h3>
@@ -569,6 +591,41 @@
           result.textContent = 'エラーが発生しました';
         })
         .testEmailNotification();
+    }
+
+    /**
+     * 記事チェックを実行
+     */
+    function runCheck(filterDays) {
+      var btnIds = ['runAllBtn', 'run1DayBtn', 'run3DayBtn', 'run7DayBtn'];
+      var btnMap = { 0: 'runAllBtn', 1: 'run1DayBtn', 3: 'run3DayBtn', 7: 'run7DayBtn' };
+      var activeBtn = document.getElementById(btnMap[filterDays]);
+      var originalText = activeBtn.innerHTML;
+      var result = document.getElementById('runResult');
+
+      // 全ボタンを無効化
+      btnIds.forEach(function(id) { document.getElementById(id).disabled = true; });
+      activeBtn.innerHTML = '<span class="spinner"></span> 実行中...';
+      result.className = 'test-result loading';
+      result.textContent = '記事をチェックしています...';
+      result.style.display = 'block';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btnIds.forEach(function(id) { document.getElementById(id).disabled = false; });
+          activeBtn.innerHTML = originalText;
+          result.className = 'test-result success';
+          result.textContent = res.message;
+          setTimeout(function() { result.style.display = 'none'; }, 5000);
+        })
+        .withFailureHandler(function(error) {
+          btnIds.forEach(function(id) { document.getElementById(id).disabled = false; });
+          activeBtn.innerHTML = originalText;
+          result.className = 'test-result error';
+          result.textContent = error.message || 'エラーが発生しました';
+          setTimeout(function() { result.style.display = 'none'; }, 5000);
+        })
+        .runCheckFromSidebar(filterDays || null);
     }
 
     /**
