@@ -1,0 +1,95 @@
+name: Deploy to Google Apps Script
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install clasp
+        run: npm install -g @google/clasp
+
+      - name: Setup clasp credentials
+        run: |
+          if [ -z "${{ secrets.CLASPRC_JSON_BASE64 }}" ]; then
+            echo "::error::CLASPRC_JSON_BASE64 secret is not set"
+            exit 1
+          fi
+          echo "${{ secrets.CLASPRC_JSON_BASE64 }}" | tr -d '\n' | base64 -d > ~/.clasprc.json
+          chmod 600 ~/.clasprc.json
+          if ! jq empty ~/.clasprc.json 2>/dev/null; then
+            echo "::error::~/.clasprc.json is not valid JSON"
+            exit 1
+          fi
+
+      - name: Setup .clasp.json
+        run: |
+          if [ ! -f .clasp.json ] && [ -n "${{ secrets.CLASP_JSON }}" ]; then
+            echo '${{ secrets.CLASP_JSON }}' > .clasp.json
+          fi
+          if [ ! -f .clasp.json ]; then
+            echo "::error::.clasp.json not found and CLASP_JSON secret not set"
+            exit 1
+          fi
+
+      - name: Deploy to Google Apps Script
+        run: clasp push --force
+
+      - name: Notify Discord (Success)
+        if: success()
+        run: |
+          curl -s -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "username": "note通知Bot Deploy",
+              "embeds": [{
+                "title": "✅ デプロイ成功",
+                "description": "Google Apps Script へのデプロイが完了しました。",
+                "color": 5763719,
+                "fields": [
+                  { "name": "ブランチ", "value": "`${{ github.ref_name }}`", "inline": true },
+                  { "name": "コミット", "value": "`${{ github.sha }}`", "inline": true },
+                  { "name": "実行者", "value": "${{ github.actor }}", "inline": true }
+                ],
+                "footer": { "text": "GitHub Actions" },
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }]
+            }'
+
+      - name: Notify Discord (Failure)
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "username": "note通知Bot Deploy",
+              "embeds": [{
+                "title": "❌ デプロイ失敗",
+                "description": "Google Apps Script へのデプロイに失敗しました。\n[ログを確認](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                "color": 15548997,
+                "fields": [
+                  { "name": "ブランチ", "value": "`${{ github.ref_name }}`", "inline": true },
+                  { "name": "コミット", "value": "`${{ github.sha }}`", "inline": true },
+                  { "name": "実行者", "value": "${{ github.actor }}", "inline": true }
+                ],
+                "footer": { "text": "GitHub Actions" },
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }]
+            }'
+
+      - name: Cleanup credentials
+        if: always()
+        run: rm -f ~/.clasprc.json

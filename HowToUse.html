@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <?!= include('Styles'); ?>
+  <style>
+    body {
+      max-height: 100%;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="dialog-content">
+    <!-- 概要 -->
+    <div class="alert alert-info">
+      📝 このシステムは、noteの記事更新を監視し、新着記事を<strong>Discord</strong>・<strong>LINE</strong>・<strong>メール</strong>に通知すると同時に<strong>Notion</strong>データベースに記録します。
+    </div>
+
+    <!-- シート構成 -->
+    <div class="howto-section">
+      <h3>📊 シート構成</h3>
+      <table style="width: 100%; font-size: 12px; border-collapse: collapse; margin-bottom: 12px;">
+        <thead>
+          <tr style="background: var(--bg-tertiary);">
+            <th style="padding: 8px; text-align: left; border-bottom: 1px solid var(--border-color);">シート名</th>
+            <th style="padding: 8px; text-align: left; border-bottom: 1px solid var(--border-color);">用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);"><strong>設定</strong></td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">Discord/Notionの認証情報、フィルタ設定</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);"><strong>監視リスト</strong></td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">監視対象のnoteクリエイター</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px;"><strong>通知履歴</strong></td>
+            <td style="padding: 8px;">送信済み記事のログ（重複防止用）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 初期設定 -->
+    <div class="howto-section">
+      <h3>🚀 初期設定</h3>
+      <ol class="howto-list">
+        <li>
+          <strong>初期セットアップを実行</strong><br>
+          メニュー「📝 note通知」→「🚀 初期セットアップ」をクリック<br>
+          または サイドバー下部の「🚀 初期セットアップ」をクリック<br>
+          <span class="help-text">→ 「設定」「監視リスト」「通知履歴」シートが作成されます</span>
+        </li>
+        <li>
+          <strong>Discord Webhook URLの取得</strong><br>
+          Discordサーバーの設定 → 連携サービス → Webhook → 新しいWebhook<br>
+          作成したWebhookの「WebhookのURLをコピー」をクリック
+        </li>
+        <li>
+          <strong>Notion API設定</strong><br>
+          <a href="https://www.notion.so/my-integrations" target="_blank" style="color: var(--note-green);">notion.so/my-integrations</a> でIntegrationを作成<br>
+          「Internal Integration Token」をコピー
+        </li>
+        <li>
+          <strong>NotionデータベースとIntegrationの接続</strong><br>
+          Notionデータベースの「...」メニュー → 「コネクトを追加」→ 作成したIntegrationを選択
+        </li>
+        <li>
+          <strong>設定シートまたはサイドバーで設定を入力</strong><br>
+          「設定」シートのB列に直接入力、またはサイドバーから入力して「設定を保存」
+        </li>
+        <li>
+          <strong>監視リストにクリエイターを追加</strong><br>
+          「監視リスト」シートにnoteクリエイターのRSS URLを追加
+        </li>
+      </ol>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 設定シートの項目 -->
+    <div class="howto-section">
+      <h3>⚙️ 設定シートの項目</h3>
+      <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+        <thead>
+          <tr style="background: var(--bg-tertiary);">
+            <th style="padding: 8px; text-align: left; border-bottom: 1px solid var(--border-color);">設定項目</th>
+            <th style="padding: 8px; text-align: left; border-bottom: 1px solid var(--border-color);">説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">Discord Webhook URL</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">DiscordのWebhook URL</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">Notion API Key</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">NotionのInternal Integration Token</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">Notion データベースID</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">NotionデータベースのID（32文字）</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">Notion 固定リンク</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">Discord通知に表示するリンク（任意）</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">取得期間（日数）</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">1 / 3 / 7 のいずれか</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">メール通知</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">1=有効 / 0=無効</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">送信先メールアドレス</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">メール通知の宛先</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">メール件名テンプレート</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">{creator},{title},{date}が使えます</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px;">メール本文テンプレート</td>
+            <td style="padding: 8px;">{creator},{title},{url},{date},{description}が使えます</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- LINE通知の設定 -->
+    <div class="howto-section">
+      <h3>💬 LINE通知の設定</h3>
+      <p style="margin-bottom: 8px;"><strong>※LINE Notifyは2025年3月末で廃止済みです。LINE Messaging APIを使用します。</strong></p>
+      <ol class="howto-list">
+        <li>
+          <strong>LINE公式アカウントを作成</strong><br>
+          <a href="https://developers.line.biz/console/" target="_blank" style="color: var(--note-green);">LINE Developers Console</a> でMessaging APIチャネルを作成
+        </li>
+        <li>
+          <strong>チャネルアクセストークン（長期）を発行</strong><br>
+          Messaging APIタブの「チャネルアクセストークン（長期）」を発行してコピー
+        </li>
+        <li>
+          <strong>ユーザーIDを確認</strong><br>
+          チャネル基本設定タブの「あなたのユーザーID」（Uで始まる33文字）をコピー
+        </li>
+        <li>
+          <strong>サイドバーで設定</strong><br>
+          サイドバーの「💬 LINE通知」セクションにトークンとユーザーIDを入力<br>
+          <span class="help-text">→ スクリプトプロパティに安全に保存されます</span>
+        </li>
+      </ol>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Notionデータベースの準備 -->
+    <div class="howto-section">
+      <h3>📊 Notionデータベースの準備</h3>
+      <p style="margin-bottom: 12px;">以下のプロパティを持つデータベースを作成してください：</p>
+      <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+        <thead>
+          <tr style="background: var(--bg-tertiary);">
+            <th style="padding: 8px; text-align: left; border-bottom: 1px solid var(--border-color);">プロパティ名</th>
+            <th style="padding: 8px; text-align: left; border-bottom: 1px solid var(--border-color);">タイプ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">タイトル</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">Title</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">URL</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">URL</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">クリエイター</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">Select</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">公開日</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">Date</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">概要</td>
+            <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">Text（Rich Text）</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px;">取得日時</td>
+            <td style="padding: 8px;">Date</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- noteのRSS URL -->
+    <div class="howto-section">
+      <h3>🔗 noteのRSS URL</h3>
+      <p style="margin-bottom: 8px;">監視したいnoteクリエイターのRSS URLは以下の形式です：</p>
+      <div class="code-block">
+        ユーザー: https://note.com/{ユーザー名}/rss<br>
+        マガジン: https://note.com/{ユーザー名}/m/{マガジンID}/rss
+      </div>
+      <p class="help-text" style="margin-top: 8px;">
+        例: https://note.com/fladdict/rss
+      </p>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- よくある質問 -->
+    <div class="howto-section">
+      <h3>❓ よくある質問</h3>
+      
+      <details style="margin-bottom: 12px;">
+        <summary style="cursor: pointer; font-weight: 500; color: var(--note-green-dark);">
+          Q: 通知が来ない
+        </summary>
+        <div style="padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-sm); margin-top: 8px;">
+          <ul style="margin-left: 16px; font-size: 12px;">
+            <li>「設定」シートのDiscord Webhook URLが正しいか確認（接続テスト）</li>
+            <li>「監視リスト」シートの「有効」列が1になっているか確認</li>
+            <li>RSS URLが正しいか確認</li>
+            <li>「通知履歴」シートで既に通知済みでないか確認</li>
+          </ul>
+        </div>
+      </details>
+
+      <details style="margin-bottom: 12px;">
+        <summary style="cursor: pointer; font-weight: 500; color: var(--note-green-dark);">
+          Q: Notion接続テストが失敗する
+        </summary>
+        <div style="padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-sm); margin-top: 8px;">
+          <ul style="margin-left: 16px; font-size: 12px;">
+            <li>API Keyが「secret_」または「ntn_」で始まっているか確認</li>
+            <li>データベースIDが正しいか確認（URLから取得）</li>
+            <li>IntegrationがデータベースにConnect（共有）されているか確認</li>
+          </ul>
+        </div>
+      </details>
+
+      <details style="margin-bottom: 12px;">
+        <summary style="cursor: pointer; font-weight: 500; color: var(--note-green-dark);">
+          Q: データベースIDの確認方法
+        </summary>
+        <div style="padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-sm); margin-top: 8px;">
+          <p style="font-size: 12px;">
+            Notionでデータベースを開き、URLを確認：<br>
+            <code style="background: var(--bg-tertiary); padding: 2px 6px; border-radius: 3px;">
+              https://www.notion.so/<strong>{データベースID}</strong>?v=xxx
+            </code><br>
+            32文字の英数字部分がデータベースIDです。
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary style="cursor: pointer; font-weight: 500; color: var(--note-green-dark);">
+          Q: 同じ記事が何度も通知される
+        </summary>
+        <div style="padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-sm); margin-top: 8px;">
+          <p style="font-size: 12px;">
+            「通知履歴」シートが正しく存在するか確認してください。<br>
+            このシートに記録されたURLは重複チェックに使用されます。
+          </p>
+        </div>
+      </details>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 参考リンク -->
+    <div class="howto-section">
+      <h3>📚 参考リンク</h3>
+      <ul style="list-style: none; font-size: 12px;">
+        <li style="margin-bottom: 8px;">
+          <a href="https://note.com/info/n/na10a32d50e41" target="_blank" style="color: var(--note-green);">
+            📝 note RSS について
+          </a>
+        </li>
+        <li style="margin-bottom: 8px;">
+          <a href="https://developers.notion.com/" target="_blank" style="color: var(--note-green);">
+            📊 Notion API ドキュメント
+          </a>
+        </li>
+        <li style="margin-bottom: 8px;">
+          <a href="https://discord.com/developers/docs/resources/webhook" target="_blank" style="color: var(--note-green);">
+            💬 Discord Webhook ドキュメント
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.line.biz/ja/docs/messaging-api/" target="_blank" style="color: var(--note-green);">
+            💚 LINE Messaging API ドキュメント
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 閉じるボタン -->
+    <div class="dialog-footer">
+      <button class="btn btn-primary" onclick="google.script.host.close()">
+        閉じる
+      </button>
+    </div>
+  </div>
+</body>
+</html>

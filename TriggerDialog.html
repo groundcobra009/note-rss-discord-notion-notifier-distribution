@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <?!= include('Styles'); ?>
+</head>
+<body>
+  <div class="dialog-content">
+    <!-- 現在のトリガー状態 -->
+    <div class="trigger-status" id="triggerStatus">
+      <div class="trigger-status-icon" id="triggerStatusIcon">
+        ⏰
+      </div>
+      <div class="trigger-status-text">
+        <div class="label">現在の設定</div>
+        <div class="value" id="triggerStatusText">読み込み中...</div>
+      </div>
+      <span class="status-badge" id="triggerBadge">確認中</span>
+    </div>
+
+    <!-- 実行モード選択 -->
+    <div class="section">
+      <h3 class="section-title">実行モード</h3>
+      <div class="section-content">
+        <div class="radio-group">
+          <label class="radio-label" id="modeHourlyLabel">
+            <input type="radio" name="triggerMode" value="hourly" onchange="updateTriggerMode()">
+            <div>
+              <strong>定期実行</strong>
+              <p class="help-text">指定した時間間隔で自動実行</p>
+            </div>
+          </label>
+          <label class="radio-label" id="modeDailyLabel">
+            <input type="radio" name="triggerMode" value="daily" onchange="updateTriggerMode()">
+            <div>
+              <strong>毎日実行</strong>
+              <p class="help-text">毎日指定時刻に1回実行</p>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 定期実行設定 -->
+    <div class="section" id="hourlySettings" style="display: none;">
+      <h3 class="section-title">実行間隔</h3>
+      <div class="section-content">
+        <div class="form-group">
+          <select class="select-field" id="hourlyInterval">
+            <option value="1">1時間ごと</option>
+            <option value="2">2時間ごと</option>
+            <option value="3">3時間ごと</option>
+            <option value="6">6時間ごと</option>
+            <option value="12">12時間ごと</option>
+            <option value="24">24時間ごと</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 毎日実行設定 -->
+    <div class="section" id="dailySettings" style="display: none;">
+      <h3 class="section-title">実行時刻</h3>
+      <div class="section-content">
+        <div class="form-group">
+          <select class="select-field" id="dailyHour">
+            <option value="0">0:00</option>
+            <option value="1">1:00</option>
+            <option value="2">2:00</option>
+            <option value="3">3:00</option>
+            <option value="4">4:00</option>
+            <option value="5">5:00</option>
+            <option value="6">6:00</option>
+            <option value="7">7:00</option>
+            <option value="8">8:00</option>
+            <option value="9" selected>9:00</option>
+            <option value="10">10:00</option>
+            <option value="11">11:00</option>
+            <option value="12">12:00</option>
+            <option value="13">13:00</option>
+            <option value="14">14:00</option>
+            <option value="15">15:00</option>
+            <option value="16">16:00</option>
+            <option value="17">17:00</option>
+            <option value="18">18:00</option>
+            <option value="19">19:00</option>
+            <option value="20">20:00</option>
+            <option value="21">21:00</option>
+            <option value="22">22:00</option>
+            <option value="23">23:00</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ステータスメッセージ -->
+    <div id="statusMessage" class="alert" style="display: none;"></div>
+
+    <!-- フッターボタン -->
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="deleteTrigger()" id="deleteBtn">
+        🗑️ トリガー削除
+      </button>
+      <button class="btn btn-primary" onclick="createTrigger()" id="createBtn">
+        ✅ トリガー作成
+      </button>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * 実行モードの切り替え
+     */
+    function updateTriggerMode() {
+      const mode = document.querySelector('input[name="triggerMode"]:checked');
+      
+      // ラジオボタンのスタイル更新
+      document.querySelectorAll('input[name="triggerMode"]').forEach(radio => {
+        const label = radio.closest('.radio-label');
+        label.classList.toggle('selected', radio.checked);
+      });
+
+      if (!mode) {
+        document.getElementById('hourlySettings').style.display = 'none';
+        document.getElementById('dailySettings').style.display = 'none';
+        return;
+      }
+
+      if (mode.value === 'hourly') {
+        document.getElementById('hourlySettings').style.display = 'block';
+        document.getElementById('dailySettings').style.display = 'none';
+      } else {
+        document.getElementById('hourlySettings').style.display = 'none';
+        document.getElementById('dailySettings').style.display = 'block';
+      }
+    }
+
+    /**
+     * トリガー情報を読み込み
+     */
+    function loadTriggerInfo() {
+      google.script.run
+        .withSuccessHandler(function(info) {
+          const statusText = document.getElementById('triggerStatusText');
+          const statusIcon = document.getElementById('triggerStatusIcon');
+          const badge = document.getElementById('triggerBadge');
+
+          if (info.exists) {
+            statusIcon.classList.add('active');
+            statusIcon.classList.remove('inactive');
+            badge.className = 'status-badge active';
+            badge.textContent = '有効';
+
+            if (info.interval) {
+              statusText.textContent = `${info.interval}時間ごとに実行`;
+              document.querySelector('input[name="triggerMode"][value="hourly"]').checked = true;
+              document.getElementById('hourlyInterval').value = info.interval;
+            } else if (info.hour !== null) {
+              statusText.textContent = `毎日 ${info.hour}:00 に実行`;
+              document.querySelector('input[name="triggerMode"][value="daily"]').checked = true;
+              document.getElementById('dailyHour').value = info.hour;
+            } else {
+              statusText.textContent = 'トリガーが設定されています';
+            }
+          } else {
+            statusIcon.classList.add('inactive');
+            statusIcon.classList.remove('active');
+            badge.className = 'status-badge inactive';
+            badge.textContent = '無効';
+            statusText.textContent = 'トリガーが設定されていません';
+          }
+
+          updateTriggerMode();
+        })
+        .withFailureHandler(function(error) {
+          document.getElementById('triggerStatusText').textContent = '読み込みエラー';
+          showStatus('トリガー情報の取得に失敗しました', 'error');
+        })
+        .getTriggerInfo();
+    }
+
+    /**
+     * トリガーを作成
+     */
+    function createTrigger() {
+      const mode = document.querySelector('input[name="triggerMode"]:checked');
+      
+      if (!mode) {
+        showStatus('実行モードを選択してください', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('createBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> 作成中...';
+
+      let intervalType = mode.value;
+      let intervalValue;
+
+      if (intervalType === 'hourly') {
+        intervalValue = parseInt(document.getElementById('hourlyInterval').value);
+      } else {
+        intervalValue = parseInt(document.getElementById('dailyHour').value);
+      }
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.disabled = false;
+          btn.innerHTML = '✅ トリガー作成';
+          
+          if (result.success) {
+            showStatus(result.message, 'success');
+            loadTriggerInfo();
+          } else {
+            showStatus(result.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.innerHTML = '✅ トリガー作成';
+          showStatus('トリガー作成に失敗しました', 'error');
+        })
+        .createTimeTrigger(intervalType, intervalValue);
+    }
+
+    /**
+     * トリガーを削除
+     */
+    function deleteTrigger() {
+      const btn = document.getElementById('deleteBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> 削除中...';
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.disabled = false;
+          btn.innerHTML = '🗑️ トリガー削除';
+          
+          if (result.success) {
+            showStatus(result.message, 'success');
+            loadTriggerInfo();
+          } else {
+            showStatus(result.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.innerHTML = '🗑️ トリガー削除';
+          showStatus('トリガー削除に失敗しました', 'error');
+        })
+        .deleteTrigger();
+    }
+
+    /**
+     * ステータスメッセージを表示
+     */
+    function showStatus(message, type) {
+      const status = document.getElementById('statusMessage');
+      status.className = 'alert alert-' + type;
+      status.textContent = message;
+      status.style.display = 'block';
+      
+      setTimeout(() => {
+        status.style.display = 'none';
+      }, 5000);
+    }
+
+    // 初期化
+    document.addEventListener('DOMContentLoaded', function() {
+      loadTriggerInfo();
+    });
+  </script>
+</body>
+</html>
+

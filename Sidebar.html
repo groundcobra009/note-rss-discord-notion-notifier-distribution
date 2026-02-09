@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <?!= include('Styles'); ?>
+</head>
+<body>
+  <!-- 認証情報セクション -->
+  <div class="section">
+    <h3 class="section-title">🔐 認証情報</h3>
+    <div class="section-content">
+      <!-- Discord Webhook URL -->
+      <div class="form-group">
+        <label class="form-label" for="discordWebhookUrl">Discord Webhook URL</label>
+        <div class="input-with-toggle">
+          <input
+            type="password"
+            id="discordWebhookUrl"
+            class="input-field"
+            placeholder="https://discord.com/api/webhooks/..."
+            aria-label="Discord Webhook URL"
+          >
+          <button
+            type="button"
+            class="toggle-visibility"
+            onclick="toggleVisibility('discordWebhookUrl')"
+            aria-label="パスワードの表示切り替え"
+          >
+            <span class="eye-icon">👁</span>
+          </button>
+        </div>
+        <div class="test-row">
+          <button class="btn btn-sm btn-outline" onclick="testDiscord()" id="testDiscordBtn">
+            接続テスト
+          </button>
+          <span id="discordTestResult" class="test-result"></span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Notion API Key -->
+      <div class="form-group">
+        <label class="form-label" for="notionApiKey">Notion API Key</label>
+        <div class="input-with-toggle">
+          <input
+            type="password"
+            id="notionApiKey"
+            class="input-field"
+            placeholder="secret_..."
+            aria-label="Notion API Key"
+          >
+          <button
+            type="button"
+            class="toggle-visibility"
+            onclick="toggleVisibility('notionApiKey')"
+            aria-label="パスワードの表示切り替え"
+          >
+            <span class="eye-icon">👁</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Notion Database ID -->
+      <div class="form-group">
+        <label class="form-label" for="notionDatabaseId">Notion データベースID</label>
+        <div class="input-with-toggle">
+          <input
+            type="password"
+            id="notionDatabaseId"
+            class="input-field"
+            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            aria-label="Notion データベースID"
+          >
+          <button
+            type="button"
+            class="toggle-visibility"
+            onclick="toggleVisibility('notionDatabaseId')"
+            aria-label="パスワードの表示切り替え"
+          >
+            <span class="eye-icon">👁</span>
+          </button>
+        </div>
+        <div class="test-row">
+          <button class="btn btn-sm btn-outline" onclick="testNotion()" id="testNotionBtn">
+            接続テスト
+          </button>
+          <span id="notionTestResult" class="test-result"></span>
+        </div>
+      </div>
+
+      <!-- Notion Page URL (固定リンク) -->
+      <div class="form-group">
+        <label class="form-label" for="notionPageUrl">Notion 固定リンク（任意）</label>
+        <input
+          type="text"
+          id="notionPageUrl"
+          class="input-field"
+          placeholder="https://www.notion.so/..."
+          aria-label="Notion 固定リンク"
+        >
+        <p class="help-text">Discord通知に表示するNotionデータベースへのリンク</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LINE設定セクション -->
+  <div class="section">
+    <h3 class="section-title">💬 LINE通知（オプション）</h3>
+    <div class="section-content">
+      <p class="help-text" style="margin-bottom:12px;">
+        LINE公式アカウントのMessaging APIを使用します。LINE Notifyは廃止済みです。
+      </p>
+
+      <!-- LINE Channel Access Token -->
+      <div class="form-group">
+        <label class="form-label" for="lineChannelAccessToken">チャネルアクセストークン</label>
+        <div class="input-with-toggle">
+          <input
+            type="password"
+            id="lineChannelAccessToken"
+            class="input-field"
+            placeholder="長期トークンを入力..."
+            aria-label="LINE チャネルアクセストークン"
+          >
+          <button
+            type="button"
+            class="toggle-visibility"
+            onclick="toggleVisibility('lineChannelAccessToken')"
+            aria-label="パスワードの表示切り替え"
+          >
+            <span class="eye-icon">👁</span>
+          </button>
+        </div>
+        <p class="help-text">LINE Developers Console → Messaging API → チャネルアクセストークン（長期）</p>
+      </div>
+
+      <!-- LINE User ID -->
+      <div class="form-group">
+        <label class="form-label" for="lineUserId">ユーザーID</label>
+        <div class="input-with-toggle">
+          <input
+            type="password"
+            id="lineUserId"
+            class="input-field"
+            placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            aria-label="LINE ユーザーID"
+          >
+          <button
+            type="button"
+            class="toggle-visibility"
+            onclick="toggleVisibility('lineUserId')"
+            aria-label="パスワードの表示切り替え"
+          >
+            <span class="eye-icon">👁</span>
+          </button>
+        </div>
+        <p class="help-text">LINE Developers Console → チャネル基本設定 → あなたのユーザーID</p>
+      </div>
+
+      <div class="test-row">
+        <button class="btn btn-sm btn-outline" onclick="testLine()" id="testLineBtn">
+          接続テスト
+        </button>
+        <span id="lineTestResult" class="test-result"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- メール通知セクション -->
+  <div class="section">
+    <h3 class="section-title">📧 メール通知（オプション）</h3>
+    <div class="section-content">
+      <!-- メール通知有効/無効 -->
+      <div class="form-group">
+        <label class="form-label">メール通知</label>
+        <div class="radio-group horizontal">
+          <label class="radio-label" id="emailEnabled1Label">
+            <input type="radio" name="emailEnabled" value="1" onchange="updateEmailRadioStyle()">
+            有効
+          </label>
+          <label class="radio-label" id="emailEnabled0Label">
+            <input type="radio" name="emailEnabled" value="0" onchange="updateEmailRadioStyle()" checked>
+            無効
+          </label>
+        </div>
+      </div>
+
+      <!-- 送信先メールアドレス（スクリプトプロパティ） -->
+      <div class="form-group">
+        <label class="form-label" for="emailTo">送信先メールアドレス</label>
+        <div class="input-with-toggle">
+          <input
+            type="password"
+            id="emailTo"
+            class="input-field"
+            placeholder="example@gmail.com"
+            aria-label="送信先メールアドレス"
+          >
+          <button
+            type="button"
+            class="toggle-visibility"
+            onclick="toggleVisibility('emailTo')"
+            aria-label="パスワードの表示切り替え"
+          >
+            <span class="eye-icon">👁</span>
+          </button>
+        </div>
+        <p class="help-text">スクリプトプロパティに安全に保存されます</p>
+      </div>
+
+      <!-- メールパスワード（スクリプトプロパティ） -->
+      <div class="form-group">
+        <label class="form-label" for="emailPassword">パスワード（アプリパスワード）</label>
+        <div class="input-with-toggle">
+          <input
+            type="password"
+            id="emailPassword"
+            class="input-field"
+            placeholder="Gmailアプリパスワード等"
+            aria-label="メールパスワード"
+          >
+          <button
+            type="button"
+            class="toggle-visibility"
+            onclick="toggleVisibility('emailPassword')"
+            aria-label="パスワードの表示切り替え"
+          >
+            <span class="eye-icon">👁</span>
+          </button>
+        </div>
+        <p class="help-text">スクリプトプロパティに安全に保存されます</p>
+      </div>
+
+      <!-- メール件名テンプレート -->
+      <div class="form-group">
+        <label class="form-label" for="emailSubject">件名テンプレート</label>
+        <input
+          type="text"
+          id="emailSubject"
+          class="input-field"
+          placeholder="【note新着】本日の新着記事 {count}件"
+          aria-label="メール件名テンプレート"
+        >
+        <p class="help-text">{count} {date} が使えます（ダイジェスト形式）</p>
+      </div>
+
+      <div class="test-row">
+        <button class="btn btn-sm btn-outline" onclick="testEmail()" id="testEmailBtn">
+          テスト送信
+        </button>
+        <span id="emailTestResult" class="test-result"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 通知設定セクション -->
+  <div class="section">
+    <h3 class="section-title">⚙️ 通知設定</h3>
+    <div class="section-content">
+      <div class="form-group">
+        <label class="form-label">取得期間フィルタ</label>
+        <div class="radio-group horizontal">
+          <label class="radio-label" id="filterDays1Label">
+            <input type="radio" name="filterDays" value="1" onchange="updateRadioStyle()">
+            1日以内
+          </label>
+          <label class="radio-label" id="filterDays3Label">
+            <input type="radio" name="filterDays" value="3" onchange="updateRadioStyle()">
+            3日以内
+          </label>
+          <label class="radio-label" id="filterDays7Label">
+            <input type="radio" name="filterDays" value="7" onchange="updateRadioStyle()">
+            7日以内
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 管理セクション -->
+  <div class="section">
+    <h3 class="section-title">📋 管理</h3>
+    <div class="section-content">
+      <div class="btn-group vertical">
+        <button class="btn btn-primary btn-block" onclick="saveSettings()" id="saveBtn">
+          💾 設定を保存
+        </button>
+        <button class="btn btn-secondary btn-block" onclick="openTriggerDialog()">
+          ⏰ トリガー設定
+        </button>
+        <button class="btn btn-secondary btn-block" onclick="openHowToUse()">
+          📖 使い方ガイド
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ステータスメッセージ -->
+  <div id="statusMessage" class="alert" style="display: none;"></div>
+
+  <!-- フッターリンク -->
+  <div class="footer-links">
+    <a class="footer-link" onclick="setupSheets()">
+      🚀 初期セットアップ（シート作成）
+    </a>
+  </div>
+
+  <script>
+    // 自動マスクタイマー管理
+    let autoMaskTimers = {};
+
+    /**
+     * パスワード表示/非表示の切り替え
+     */
+    function toggleVisibility(inputId) {
+      const input = document.getElementById(inputId);
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+
+      // 自動再マスク（10秒後）
+      if (isPassword) {
+        clearTimeout(autoMaskTimers[inputId]);
+        autoMaskTimers[inputId] = setTimeout(() => {
+          input.type = 'password';
+        }, 10000);
+      } else {
+        clearTimeout(autoMaskTimers[inputId]);
+      }
+    }
+
+    /**
+     * ラジオボタンのスタイル更新
+     */
+    function updateRadioStyle() {
+      const radios = document.querySelectorAll('input[name="filterDays"]');
+      radios.forEach(radio => {
+        const label = radio.closest('.radio-label');
+        if (radio.checked) {
+          label.classList.add('selected');
+        } else {
+          label.classList.remove('selected');
+        }
+      });
+    }
+
+    /**
+     * メール有効/無効ラジオボタンのスタイル更新
+     */
+    function updateEmailRadioStyle() {
+      const radios = document.querySelectorAll('input[name="emailEnabled"]');
+      radios.forEach(radio => {
+        const label = radio.closest('.radio-label');
+        label.classList.toggle('selected', radio.checked);
+      });
+    }
+
+    /**
+     * 設定を読み込み
+     */
+    function loadSettings() {
+      google.script.run
+        .withSuccessHandler(function(settings) {
+          document.getElementById('discordWebhookUrl').value = settings.discordWebhookUrl || '';
+          document.getElementById('notionApiKey').value = settings.notionApiKey || '';
+          document.getElementById('notionDatabaseId').value = settings.notionDatabaseId || '';
+          document.getElementById('notionPageUrl').value = settings.notionPageUrl || '';
+
+          // LINE設定（マスク値を表示）
+          document.getElementById('lineChannelAccessToken').value = settings.lineChannelAccessToken || '';
+          document.getElementById('lineUserId').value = settings.lineUserId || '';
+
+          // メール設定
+          var emailEnabledRadio = document.querySelector('input[name="emailEnabled"][value="' + (settings.emailEnabled || '0') + '"]');
+          if (emailEnabledRadio) {
+            emailEnabledRadio.checked = true;
+            updateEmailRadioStyle();
+          }
+          document.getElementById('emailTo').value = settings.emailTo || '';
+          document.getElementById('emailPassword').value = settings.emailPassword || '';
+          document.getElementById('emailSubject').value = settings.emailSubject || '';
+
+          // フィルタ日数
+          const filterDays = settings.filterDays || '1';
+          const radio = document.querySelector('input[name="filterDays"][value="' + filterDays + '"]');
+          if (radio) {
+            radio.checked = true;
+            updateRadioStyle();
+          }
+        })
+        .withFailureHandler(showError)
+        .getAllSettings();
+    }
+
+    /**
+     * 設定を保存
+     */
+    function saveSettings() {
+      const btn = document.getElementById('saveBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> 保存中...';
+
+      const filterDaysRadio = document.querySelector('input[name="filterDays"]:checked');
+      const emailEnabledRadio = document.querySelector('input[name="emailEnabled"]:checked');
+
+      const settings = {
+        discordWebhookUrl: document.getElementById('discordWebhookUrl').value.trim(),
+        notionApiKey: document.getElementById('notionApiKey').value.trim(),
+        notionDatabaseId: document.getElementById('notionDatabaseId').value.trim(),
+        notionPageUrl: document.getElementById('notionPageUrl').value.trim(),
+        filterDays: filterDaysRadio ? filterDaysRadio.value : '1',
+        lineChannelAccessToken: document.getElementById('lineChannelAccessToken').value.trim(),
+        lineUserId: document.getElementById('lineUserId').value.trim(),
+        emailEnabled: emailEnabledRadio ? emailEnabledRadio.value : '0',
+        emailTo: document.getElementById('emailTo').value.trim(),
+        emailPassword: document.getElementById('emailPassword').value.trim(),
+        emailSubject: document.getElementById('emailSubject').value.trim()
+      };
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.disabled = false;
+          btn.innerHTML = '💾 設定を保存';
+          showStatus(result.message, 'success');
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.innerHTML = '💾 設定を保存';
+          showError(error);
+        })
+        .saveAllSettings(settings);
+    }
+
+    /**
+     * Discord接続テスト
+     */
+    function testDiscord() {
+      const btn = document.getElementById('testDiscordBtn');
+      const result = document.getElementById('discordTestResult');
+
+      // まず設定を保存
+      const webhookUrl = document.getElementById('discordWebhookUrl').value.trim();
+      google.script.run.saveSettings('DISCORD_WEBHOOK_URL', webhookUrl);
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>';
+      result.className = 'test-result loading';
+      result.textContent = 'テスト中...';
+      result.style.display = 'inline-block';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.disabled = false;
+          btn.innerHTML = '接続テスト';
+          result.className = 'test-result ' + (res.success ? 'success' : 'error');
+          result.textContent = res.message;
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.innerHTML = '接続テスト';
+          result.className = 'test-result error';
+          result.textContent = 'エラーが発生しました';
+        })
+        .testDiscordWebhook();
+    }
+
+    /**
+     * Notion接続テスト
+     */
+    function testNotion() {
+      const btn = document.getElementById('testNotionBtn');
+      const result = document.getElementById('notionTestResult');
+
+      // まず設定を保存
+      const apiKey = document.getElementById('notionApiKey').value.trim();
+      const databaseId = document.getElementById('notionDatabaseId').value.trim();
+      google.script.run.saveSettings('NOTION_API_KEY', apiKey);
+      google.script.run.saveSettings('NOTION_DATABASE_ID', databaseId);
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>';
+      result.className = 'test-result loading';
+      result.textContent = 'テスト中...';
+      result.style.display = 'inline-block';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.disabled = false;
+          btn.innerHTML = '接続テスト';
+          result.className = 'test-result ' + (res.success ? 'success' : 'error');
+          result.textContent = res.message;
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.innerHTML = '接続テスト';
+          result.className = 'test-result error';
+          result.textContent = 'エラーが発生しました';
+        })
+        .testNotionConnection();
+    }
+
+    /**
+     * LINE接続テスト
+     */
+    function testLine() {
+      const btn = document.getElementById('testLineBtn');
+      const result = document.getElementById('lineTestResult');
+
+      // まずLINE設定を保存
+      var token = document.getElementById('lineChannelAccessToken').value.trim();
+      var userId = document.getElementById('lineUserId').value.trim();
+      if (token && token !== '********') {
+        google.script.run.saveLineSettings(token, userId);
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>';
+      result.className = 'test-result loading';
+      result.textContent = 'テスト中...';
+      result.style.display = 'inline-block';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.disabled = false;
+          btn.innerHTML = '接続テスト';
+          result.className = 'test-result ' + (res.success ? 'success' : 'error');
+          result.textContent = res.message;
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.innerHTML = '接続テスト';
+          result.className = 'test-result error';
+          result.textContent = 'エラーが発生しました';
+        })
+        .testLineConnection();
+    }
+
+    /**
+     * メールテスト送信
+     */
+    function testEmail() {
+      const btn = document.getElementById('testEmailBtn');
+      const result = document.getElementById('emailTestResult');
+
+      // まずメール設定をスクリプトプロパティに保存
+      var emailTo = document.getElementById('emailTo').value.trim();
+      var emailPassword = document.getElementById('emailPassword').value.trim();
+      if (emailTo && emailTo !== '********') {
+        google.script.run.saveAllSettings({ emailTo: emailTo, emailPassword: emailPassword });
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>';
+      result.className = 'test-result loading';
+      result.textContent = '送信中...';
+      result.style.display = 'inline-block';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.disabled = false;
+          btn.innerHTML = 'テスト送信';
+          result.className = 'test-result ' + (res.success ? 'success' : 'error');
+          result.textContent = res.message;
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.innerHTML = 'テスト送信';
+          result.className = 'test-result error';
+          result.textContent = 'エラーが発生しました';
+        })
+        .testEmailNotification();
+    }
+
+    /**
+     * トリガーダイアログを開く
+     */
+    function openTriggerDialog() {
+      google.script.run.openTriggerDialog();
+    }
+
+    /**
+     * 使い方ガイドを開く
+     */
+    function openHowToUse() {
+      google.script.run.openHowToUse();
+    }
+
+    /**
+     * 初期セットアップ（シート作成）
+     */
+    function setupSheets() {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          showStatus(result.message, 'success');
+        })
+        .withFailureHandler(showError)
+        .setupAllSheets();
+    }
+
+    /**
+     * ステータスメッセージを表示
+     */
+    function showStatus(message, type) {
+      const status = document.getElementById('statusMessage');
+      status.className = 'alert alert-' + type;
+      status.textContent = message;
+      status.style.display = 'block';
+
+      setTimeout(() => {
+        status.style.display = 'none';
+      }, 5000);
+    }
+
+    /**
+     * エラーを表示
+     */
+    function showError(error) {
+      showStatus(error.message || 'エラーが発生しました', 'error');
+    }
+
+    // 初期化
+    document.addEventListener('DOMContentLoaded', function() {
+      loadSettings();
+    });
+  </script>
+</body>
+</html>
