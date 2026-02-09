@@ -12,13 +12,6 @@ function onOpen() {
   const ui = SpreadsheetApp.getUi();
   ui.createMenu('📝 note通知')
     .addItem('⚙️ 設定を開く', 'openSidebar')
-    .addSeparator()
-    .addItem('🚀 初期セットアップ', 'runInitialSetup')
-    .addSeparator()
-    .addItem('▶️ 今すぐ実行（全て）', 'checkAllCreatorsMenu')
-    .addItem('📅 1日以内の記事をチェック', 'checkCreatorsWithin1Day')
-    .addItem('📅 3日以内の記事をチェック', 'checkCreatorsWithin3Days')
-    .addItem('📆 7日以内の記事をチェック', 'checkCreatorsWithin7Days')
     .addToUi();
 }
 
@@ -63,12 +56,13 @@ function runInitialSetup() {
 }
 
 /**
- * 全クリエイターをチェック（メニューから呼び出し用）
+ * サイドバーから記事チェックを実行
+ * @param {number} filterDays - フィルタ日数（省略時は設定値を使用）
+ * @returns {Object} 実行結果
  */
-function checkAllCreatorsMenu() {
-  const ui = SpreadsheetApp.getUi();
-  const count = checkAllCreators();
-  ui.alert('✅ 完了', `記事をチェックしました。\n${count}件の通知を送信しました。`, ui.ButtonSet.OK);
+function runCheckFromSidebar(filterDays) {
+  const count = checkAllCreators(filterDays || undefined);
+  return { success: true, message: count + '件の通知を送信しました。' };
 }
 
 /**
@@ -192,32 +186,6 @@ function checkAllCreators(overrideFilterDays) {
   return notificationCount;
 }
 
-/**
- * 1日以内の記事をチェック
- */
-function checkCreatorsWithin1Day() {
-  const ui = SpreadsheetApp.getUi();
-  const count = checkAllCreators(1);
-  ui.alert('✅ 完了', `1日以内の記事をチェックしました。\n${count}件の通知を送信しました。`, ui.ButtonSet.OK);
-}
-
-/**
- * 3日以内の記事をチェック
- */
-function checkCreatorsWithin3Days() {
-  const ui = SpreadsheetApp.getUi();
-  const count = checkAllCreators(3);
-  ui.alert('✅ 完了', `3日以内の記事をチェックしました。\n${count}件の通知を送信しました。`, ui.ButtonSet.OK);
-}
-
-/**
- * 7日以内の記事をチェック
- */
-function checkCreatorsWithin7Days() {
-  const ui = SpreadsheetApp.getUi();
-  const count = checkAllCreators(7);
-  ui.alert('✅ 完了', `7日以内の記事をチェックしました。\n${count}件の通知を送信しました。`, ui.ButtonSet.OK);
-}
 
 /**
  * 通知済みURLのセットを取得
