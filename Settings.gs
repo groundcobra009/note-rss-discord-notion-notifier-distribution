@@ -23,8 +23,7 @@ const SETTING_ROWS = {
 const SECURE_PROPERTY_KEYS = {
   LINE_CHANNEL_ACCESS_TOKEN: 'LINE_CHANNEL_ACCESS_TOKEN',
   LINE_USER_ID: 'LINE_USER_ID',
-  EMAIL_TO: 'EMAIL_TO',
-  EMAIL_PASSWORD: 'EMAIL_PASSWORD'
+  EMAIL_TO: 'EMAIL_TO'
 };
 
 /**
@@ -96,7 +95,6 @@ function getAllSettings() {
   const lineToken = props.getProperty(SECURE_PROPERTY_KEYS.LINE_CHANNEL_ACCESS_TOKEN) || '';
   const lineUserId = props.getProperty(SECURE_PROPERTY_KEYS.LINE_USER_ID) || '';
   const emailTo = props.getProperty(SECURE_PROPERTY_KEYS.EMAIL_TO) || '';
-  const emailPassword = props.getProperty(SECURE_PROPERTY_KEYS.EMAIL_PASSWORD) || '';
 
   return {
     discordWebhookUrl: getCellValue(sheet, SETTING_ROWS.DISCORD_WEBHOOK_URL, 2),
@@ -106,7 +104,6 @@ function getAllSettings() {
     filterDays: getCellValue(sheet, SETTING_ROWS.FILTER_DAYS, 2) || '1',
     emailEnabled: getCellValue(sheet, SETTING_ROWS.EMAIL_ENABLED, 2) || '0',
     emailTo: emailTo ? '********' : '',
-    emailPassword: emailPassword ? '********' : '',
     emailSubject: getCellValue(sheet, SETTING_ROWS.EMAIL_SUBJECT, 2),
     lineChannelAccessToken: lineToken ? '********' : '',
     lineUserId: lineUserId ? '********' : '',
@@ -174,9 +171,6 @@ function saveAllSettings(settings) {
   if (settings.emailTo && settings.emailTo !== '********') {
     props.setProperty(SECURE_PROPERTY_KEYS.EMAIL_TO, settings.emailTo);
   }
-  if (settings.emailPassword && settings.emailPassword !== '********') {
-    props.setProperty(SECURE_PROPERTY_KEYS.EMAIL_PASSWORD, settings.emailPassword);
-  }
 
   return { success: true, message: '設定を保存しました' };
 }
@@ -192,7 +186,7 @@ function createSettingsSheet(ss) {
   // ヘッダー行
   sheet.getRange(1, 1, 1, 3).setValues([['設定項目', '設定値', '説明']]);
   
-  // 設定項目（メールアドレス・パスワードはスクリプトプロパティに保存）
+  // 設定項目（メールアドレスはスクリプトプロパティに保存）
   const settingsData = [
     ['Discord Webhook URL', '', 'DiscordのWebhook URL'],
     ['Notion API Key', '', 'NotionのInternal Integration Token'],
@@ -398,8 +392,7 @@ function getLineSettings() {
 function getEmailSettings() {
   const props = PropertiesService.getScriptProperties();
   return {
-    to: props.getProperty(SECURE_PROPERTY_KEYS.EMAIL_TO) || '',
-    password: props.getProperty(SECURE_PROPERTY_KEYS.EMAIL_PASSWORD) || ''
+    to: props.getProperty(SECURE_PROPERTY_KEYS.EMAIL_TO) || ''
   };
 }
 

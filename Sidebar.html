@@ -5,13 +5,12 @@
   <?!= include('Styles'); ?>
 </head>
 <body>
-  <!-- 認証情報セクション -->
+  <!-- Discord設定セクション -->
   <div class="section">
-    <h3 class="section-title">🔐 認証情報</h3>
+    <h3 class="section-title">🔗 Discord設定</h3>
     <div class="section-content">
-      <!-- Discord Webhook URL -->
       <div class="form-group">
-        <label class="form-label" for="discordWebhookUrl">Discord Webhook URL</label>
+        <label class="form-label" for="discordWebhookUrl">Webhook URL</label>
         <div class="input-with-toggle">
           <input
             type="password"
@@ -36,12 +35,15 @@
           <span id="discordTestResult" class="test-result"></span>
         </div>
       </div>
+    </div>
+  </div>
 
-      <div class="divider"></div>
-
-      <!-- Notion API Key -->
+  <!-- Notion設定セクション（折りたたみ） -->
+  <div class="section section-collapsible collapsed" onclick="toggleSection(this, event)">
+    <h3 class="section-title">📓 Notion連携（オプション）</h3>
+    <div class="section-content">
       <div class="form-group">
-        <label class="form-label" for="notionApiKey">Notion API Key</label>
+        <label class="form-label" for="notionApiKey">API Key</label>
         <div class="input-with-toggle">
           <input
             type="password"
@@ -61,9 +63,8 @@
         </div>
       </div>
 
-      <!-- Notion Database ID -->
       <div class="form-group">
-        <label class="form-label" for="notionDatabaseId">Notion データベースID</label>
+        <label class="form-label" for="notionDatabaseId">データベースID</label>
         <div class="input-with-toggle">
           <input
             type="password"
@@ -89,9 +90,8 @@
         </div>
       </div>
 
-      <!-- Notion Page URL (固定リンク) -->
       <div class="form-group">
-        <label class="form-label" for="notionPageUrl">Notion 固定リンク（任意）</label>
+        <label class="form-label" for="notionPageUrl">固定リンク（任意）</label>
         <input
           type="text"
           id="notionPageUrl"
@@ -104,15 +104,14 @@
     </div>
   </div>
 
-  <!-- LINE設定セクション -->
-  <div class="section">
+  <!-- LINE設定セクション（折りたたみ） -->
+  <div class="section section-collapsible collapsed" onclick="toggleSection(this, event)">
     <h3 class="section-title">💬 LINE通知（オプション）</h3>
     <div class="section-content">
       <p class="help-text" style="margin-bottom:12px;">
-        LINE公式アカウントのMessaging APIを使用します。LINE Notifyは廃止済みです。
+        LINE公式アカウントのMessaging APIを使用します。
       </p>
 
-      <!-- LINE Channel Access Token -->
       <div class="form-group">
         <label class="form-label" for="lineChannelAccessToken">チャネルアクセストークン</label>
         <div class="input-with-toggle">
@@ -132,10 +131,8 @@
             <span class="eye-icon">👁</span>
           </button>
         </div>
-        <p class="help-text">LINE Developers Console → Messaging API → チャネルアクセストークン（長期）</p>
       </div>
 
-      <!-- LINE User ID -->
       <div class="form-group">
         <label class="form-label" for="lineUserId">ユーザーID</label>
         <div class="input-with-toggle">
@@ -155,7 +152,6 @@
             <span class="eye-icon">👁</span>
           </button>
         </div>
-        <p class="help-text">LINE Developers Console → チャネル基本設定 → あなたのユーザーID</p>
       </div>
 
       <div class="test-row">
@@ -201,29 +197,6 @@
             type="button"
             class="toggle-visibility"
             onclick="toggleVisibility('emailTo')"
-            aria-label="パスワードの表示切り替え"
-          >
-            <span class="eye-icon">👁</span>
-          </button>
-        </div>
-        <p class="help-text">スクリプトプロパティに安全に保存されます</p>
-      </div>
-
-      <!-- メールパスワード（スクリプトプロパティ） -->
-      <div class="form-group">
-        <label class="form-label" for="emailPassword">パスワード（アプリパスワード）</label>
-        <div class="input-with-toggle">
-          <input
-            type="password"
-            id="emailPassword"
-            class="input-field"
-            placeholder="Gmailアプリパスワード等"
-            aria-label="メールパスワード"
-          >
-          <button
-            type="button"
-            class="toggle-visibility"
-            onclick="toggleVisibility('emailPassword')"
             aria-label="パスワードの表示切り替え"
           >
             <span class="eye-icon">👁</span>
@@ -333,6 +306,16 @@
     let autoMaskTimers = {};
 
     /**
+     * 折りたたみセクションのトグル
+     */
+    function toggleSection(section, event) {
+      // input/button/aクリック時はトグルしない
+      var tag = event.target.tagName.toLowerCase();
+      if (tag === 'input' || tag === 'button' || tag === 'a' || tag === 'span') return;
+      section.classList.toggle('collapsed');
+    }
+
+    /**
      * パスワード表示/非表示の切り替え
      */
     function toggleVisibility(inputId) {
@@ -399,7 +382,6 @@
             updateEmailRadioStyle();
           }
           document.getElementById('emailTo').value = settings.emailTo || '';
-          document.getElementById('emailPassword').value = settings.emailPassword || '';
           document.getElementById('emailSubject').value = settings.emailSubject || '';
 
           // フィルタ日数
@@ -435,7 +417,6 @@
         lineUserId: document.getElementById('lineUserId').value.trim(),
         emailEnabled: emailEnabledRadio ? emailEnabledRadio.value : '0',
         emailTo: document.getElementById('emailTo').value.trim(),
-        emailPassword: document.getElementById('emailPassword').value.trim(),
         emailSubject: document.getElementById('emailSubject').value.trim()
       };
 
@@ -566,9 +547,8 @@
 
       // まずメール設定をスクリプトプロパティに保存
       var emailTo = document.getElementById('emailTo').value.trim();
-      var emailPassword = document.getElementById('emailPassword').value.trim();
       if (emailTo && emailTo !== '********') {
-        google.script.run.saveAllSettings({ emailTo: emailTo, emailPassword: emailPassword });
+        google.script.run.saveAllSettings({ emailTo: emailTo });
       }
 
       btn.disabled = true;
